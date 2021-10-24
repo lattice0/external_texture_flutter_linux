@@ -19,6 +19,8 @@ target_include_directories(${PLUGIN_NAME} INTERFACE
   "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(${PLUGIN_NAME} PRIVATE flutter)
 target_link_libraries(${PLUGIN_NAME} PRIVATE PkgConfig::GTK)
+find_package( OpenGL REQUIRED )
+target_link_libraries(${PLUGIN_NAME} PRIVATE OpenGL::GL)
 
 # List of absolute paths to libraries that should be bundled with the plugin
 set(external_texture_bundled_libraries

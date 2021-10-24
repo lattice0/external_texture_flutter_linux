@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:external_texture/external_texture.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(MyApp());
@@ -15,11 +15,17 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
+  int? textureID;
 
   @override
   void initState() {
     super.initState();
     initPlatformState();
+    ExternalTexture.registerTexture().then((id) {
+      setState(() {
+        textureID = id;
+      });
+    });
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -28,8 +34,7 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
-      platformVersion =
-          await ExternalTexture.platformVersion ?? 'Unknown platform version';
+      platformVersion = await ExternalTexture.platformVersion ?? 'Unknown platform version';
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
@@ -52,7 +57,7 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+          child: Column(children: [textureID == null ? const SizedBox() : Expanded(child: Texture(textureId: textureID!)), Text('Running on: $_platformVersion\n')]),
         ),
       ),
     );
