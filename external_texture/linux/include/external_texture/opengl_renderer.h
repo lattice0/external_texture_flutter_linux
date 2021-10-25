@@ -1,6 +1,8 @@
 #ifndef OPENGL_RENDERER_FLUTTER_H
 #define OPENGL_RENDERER_FLUTTER_H
 #include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <dlfcn.h>
 #include <gtk/gtk.h>
 #include <vector>
 
@@ -10,16 +12,28 @@ class OpenGLRenderer {
  public:
   OpenGLRenderer(GdkGLContext* context) { this->context = context; }
 
-  int genTexture(int width, int height) {
-    if (glewInit() != GLEW_OK) {
-      printf("Failed to init GLEW\n");
-      return -1;
-    }
-    glViewport(0, 0, width, height);
-
+  void genPixelBufferFromOpenGL(int width, int height, uint8_t* buffer) {
     float vertices[] = {-0.5f, -0.5f, 0.0f, 0.5f, -0.5f,
                         0.0f,  0.0f,  0.5f, 0.0f};
 
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_VISIBLE, 0);
+    GLFWwindow* window =
+        glfwCreateWindow(width, height, "LearnOpenGL", NULL, NULL);
+    glfwMakeContextCurrent(window);
+
+    // Init GLEW
+    if (glewInit() != GLEW_OK) {
+      printf("Failed to create GLFW window\n");
+      return;
+    }
+
+    glViewport(0, 0, width, height);
+
+    // Render
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -45,7 +59,7 @@ class OpenGLRenderer {
         "out vec4 FragColor;\n"
         "void main()\n"
         "{\n"
-        "    FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);\n"
+        "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
         "}\0";
 
     unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -65,13 +79,22 @@ class OpenGLRenderer {
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
     glBindVertexArray(VAO);
     glUseProgram(shaderProgram);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    uint8_t buffer[width * height * 4];
     glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteProgram(shaderProgram);
+    glDisableVertexAttribArray(0);
+    glUseProgram(0);
+
+    glfwTerminate();
+  }
+
+  int genTexture(int width, int height, uint8_t* buffer) {
     unsigned int texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);

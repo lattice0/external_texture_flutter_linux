@@ -33,7 +33,6 @@ static void external_texture_plugin_handle_method_call(
   g_autoptr(FlMethodResponse) response = nullptr;
 
   const gchar* method = fl_method_call_get_name(method_call);
-
   if (strcmp(method, "getPlatformVersion") == 0) {
     struct utsname uname_data = {};
     uname(&uname_data);
@@ -44,11 +43,13 @@ static void external_texture_plugin_handle_method_call(
     GdkWindow* window = gtk_widget_get_parent_window(GTK_WIDGET(self->fl_view));
     GError* error = NULL;
     GdkGLContext* context = gdk_window_create_gl_context(window, &error);
-    gdk_gl_context_make_current(context);
     openglRenderer = std::make_unique<OpenGLRenderer>(context);
-    int width = 1280;
-    int height = 720;
-    int texture_name = openglRenderer->genTexture(width, height);
+    int width = 500;
+    int height = 500;
+    uint8_t buffer[width * height * 4];
+    openglRenderer->genPixelBufferFromOpenGL(width, height, buffer);
+    gdk_gl_context_make_current(context);
+    int texture_name = openglRenderer->genTexture(width, height, buffer);
     FlMyTextureGL* t =
         fl_my_texture_gl_new(GL_TEXTURE_2D, texture_name, width, height);
     g_autoptr(FlTexture) texture = FL_TEXTURE(t);

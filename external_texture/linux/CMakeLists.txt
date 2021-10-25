@@ -19,8 +19,16 @@ target_include_directories(${PLUGIN_NAME} INTERFACE
   "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(${PLUGIN_NAME} PRIVATE flutter)
 target_link_libraries(${PLUGIN_NAME} PRIVATE PkgConfig::GTK)
+
+set(OpenGL_GL_PREFERENCE LEGACY)
+find_package( OpenGL REQUIRED )
+target_link_libraries(${PLUGIN_NAME} PRIVATE OpenGL::GL)
+
 find_package(GLEW REQUIRED)
 target_link_libraries(${PLUGIN_NAME} PRIVATE GLEW::GLEW )
+
+find_package(glfw3 3.3 REQUIRED)
+target_link_libraries(${PLUGIN_NAME} PRIVATE glfw )
 
 # List of absolute paths to libraries that should be bundled with the plugin
 set(external_texture_bundled_libraries
